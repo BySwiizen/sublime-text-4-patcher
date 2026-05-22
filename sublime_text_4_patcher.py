@@ -233,9 +233,7 @@ class File:
             self.path.replace(backup_path)
         except PermissionError as e:
             msg = f"Permission denied renaming file to {backup_path}. Try running as Administrator"
-            raise PermissionError(
-                msg
-            ) from e
+            raise PermissionError(msg) from e
         except OSError as e:
             msg = f"Error renaming file to {backup_path}"
             raise OSError(msg) from e
@@ -243,10 +241,10 @@ class File:
         try:
             self.path.write_bytes(self.data)
         except PermissionError as e:
-            msg = f"Permission denied writing to new file {self.path}. Try running as Administrator."
-            raise PermissionError(
-                msg
-            ) from e
+            msg = (
+                f"Permission denied writing to new file {self.path}. Try running as Administrator."
+            )
+            raise PermissionError(msg) from e
         except OSError as e:
             msg = f"Error writing to new file {self.path}"
             raise OSError(msg) from e
@@ -588,10 +586,7 @@ class PatchDB:
         self.load()
 
     def get_patches(self):
-        return (
-            self.DB[self.os][self.arch]["base"]
-            + self.DB[self.os][self.arch][self.channel]
-        )
+        return self.DB[self.os][self.arch]["base"] + self.DB[self.os][self.arch][self.channel]
 
     def load(self) -> None:
         if self.os == "windows":
@@ -602,8 +597,10 @@ class PatchDB:
                     Sig(
                         "41 B8 88 13 00 00 E8 ? ? ? ?",
                         offset=0x6,
-                        name="invalidate1",
+                        name="license_revalidate1",
                     ),
+                    # TODO: callback, ret
+                    # TODO: license_invalidate callback, ret
                 ),
                 Patch(
                     # schedule callback 2
@@ -611,28 +608,31 @@ class PatchDB:
                     Sig(
                         "41 B8 98 3A 00 00 E8 ? ? ? ?",
                         offset=0x6,
-                        name="invalidate2",
+                        name="license_revalidate2",
                     ),
+                    # TODO: callback, ret
+                    # TODO: license_invalidate callback, ret
                 ),
                 Patch(
-                    # enum
+                    # valid enum
                     "ret0" if self.version < 4205 else "ret1",
                     Sigs(
-                        "license_check",
-                        # callsite 1
+                        "license_validate",
+                        # callsite head
                         Sig(
                             "0f 11 ? ? ? 31 ? 45 31 ? 45 31 ? e8 ? ? ? ?",
                             ref="call",
                             offset=0xD,
                         ),
-                        # callsite 2
+                        # callsite mid
                         Sig(
                             "45 31 ? e8 ? ? ? ? 85 c0 75 ? ? 8d",
                             ref="call",
                             offset=0x3,
                         ),
-                        # callsite 3
+                        # callsite tail
                         Sig("e8 ? ? ? ? ? 8b ? ? ? ? ? 85 c0 0f 94 ? ? 74", ref="call"),
+                        # TODO: other callsites
                     ),
                 ),
                 Patch(
@@ -660,7 +660,7 @@ class PatchDB:
                         Sig(
                             "56 57 53 48 83 ec ? 89 d6 48 89 cf b9 ? 00 00 00 e8 ? ? ? ?",
                         ),
-                        # TODO: thread
+                        # TODO: thread, ret
                     ),
                 ),
             )
