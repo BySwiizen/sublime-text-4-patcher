@@ -127,6 +127,7 @@ class Patch:
             "ret": "C3",  # ret
             "ret0": "48 31 C0 C3",  # xor rax, rax; ret
             "ret1": "48 31 C0 48 FF C0 C3",  # xor rax, rax; inc rax; ret
+            "ret280": "48 31 C0 B8 18 01 00 00 C3",  # xor rax, rax; mov eax, 280; ret
         }.items()
     }
 
@@ -529,6 +530,7 @@ class PatchDB:
             4198,
             4199,
             4205,
+            4206,
         ),
         "stable": (
             4107,
@@ -615,7 +617,11 @@ class PatchDB:
                 ),
                 Patch(
                     # valid enum
-                    "ret0" if self.version < 4205 else "ret1",
+                    "ret280"
+                    if self.version == 4206
+                    else "ret1"
+                    if self.version == 4205
+                    else "ret0",
                     Sigs(
                         "license_validate",
                         # callsite head
