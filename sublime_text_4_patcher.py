@@ -531,6 +531,7 @@ class PatchDB:
             4199,
             4205,
             4206,
+            4207,
         ),
         "stable": (
             4107,
@@ -618,7 +619,7 @@ class PatchDB:
                 Patch(
                     # valid enum
                     "ret280"
-                    if self.version == 4206
+                    if self.version >= 4206
                     else "ret1"
                     if self.version == 4205
                     else "ret0",
